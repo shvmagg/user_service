@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
+
+	// "log"
 	"net/http"
 
 	_ "github.com/lib/pq"
@@ -21,7 +23,7 @@ func headers(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func userValidator(w http.ResponseWriter, req *http.Request) {
+/*func userValidator(w http.ResponseWriter, req *http.Request) {
 	userId := ""
 	for name, headers := range req.Header {
 		for _, h := range headers {
@@ -55,9 +57,10 @@ func userValidator(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 	}
-}
+}*/
+
 func getUsersCount(w http.ResponseWriter, req *http.Request) {
-	sql := "select COUNT(*) FROM users "
+	sql := "select COUNT(*) FROM users WHERE name='mamta' "
 	rows, err := db.Query(sql)
 
 	if err != nil {
@@ -77,6 +80,40 @@ func getUsersCount(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func validate_user(w http.ResponseWriter, req *http.Request) {
+	q := req.URL.Query()
+	fmt.Println(q)
+
+	name, ok := q["name"]
+
+	if !(ok) {
+		fmt.Fprintf(w, "no name in query!!")
+	} else {
+		sql := ("select count(*) from users where username = '" + name[0] + "';")
+		rows, err := db.Query(sql)
+
+		// fmt.Println(rows)
+		if err != nil {
+			fmt.Fprintf(w, "Error")
+		} else {
+			defer rows.Close()
+			for rows.Next() {
+				var (
+					count int64
+				)
+				if err := rows.Scan(&count); err != nil {
+					panic(err)
+				}
+				if count == 1 {
+					fmt.Fprint(w, "Validated\n")
+				} else {
+					fmt.Fprint(w, "bot Not validated\n")
+				}
+			}
+		}
+	}
+}
+
 const (
 	host     = "localhost"
 	port     = 5432
@@ -92,7 +129,7 @@ func main() {
 	http.HandleFunc("/hello", hello)
 	http.HandleFunc("/headers", headers)
 	http.HandleFunc("/getUsersCount", getUsersCount)
-	http.HandleFunc("/Validator", userValidator)
+	http.HandleFunc("/Validator", validate_user)
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
@@ -109,5 +146,5 @@ func main() {
 
 	fmt.Println("Successfully connected!")
 
-	http.ListenAndServe("192.168.29.151:1000", nil)
+	http.ListenAndServe("192.168.254.242:1000", nil)
 }
