@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"1program.com/tournament_app/db"
 )
 
 type Data struct {
 	Name   string
-	Number int
+	Number string
 }
 
 func addRows(w http.ResponseWriter, req *http.Request) {
@@ -25,7 +24,7 @@ func addRows(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	sql := "insert into users (username,contactno) values ('" + info.Name + "', " + strconv.Itoa(info.Number) + ") RETURNING userid;"
+	sql := "insert into users (username,contactno) values ('" + info.Name + "', " + info.Number + ") RETURNING userid;"
 
 	rows, err := db.DB().Query(sql)
 
